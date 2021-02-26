@@ -1,0 +1,24 @@
+Package: ShoeLabeling
+Title: Labeling Shoes for Machine Learning
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Susan",
+           family = "Vanderplas",
+           role = c("aut", "cre"),
+           email = "srvanderplas@gmail.com",
+           comment = c(ORCID = "0000-0002-3803-0972")),
+    person(given = "Jayden",
+           family = "Stack",
+           role = c("aut"),
+           email = "jstack05@gmail.com")
+    )
+Description: Contains functions for formatting labeled shoe images in order to fit 
+    various machine learning models to the labeled data.
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    lifecycle
+RdMacros: lifecycle
