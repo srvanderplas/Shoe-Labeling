@@ -68,6 +68,18 @@ create_labeled_masks <- function(labeled_points, imdim = dim(image), image = NUL
     mutate(mask = purrr::map(points, create_mask, imdim = imdim))
 }
 
+mask_image <- function(mask, im) {
+  # Censor the image using the masks
+  y <- map(mask$mask, function(x) {
+    xx <- im
+    xx[x] <- 1
+    return(xx)
+  }) %>% as.imlist()
+  
+  # Add labels to the image pieces
+  names(y) <- mask$label
+  y
+}
 
 # Get the image
 im <- load.image(completions$img[[1]])
@@ -77,15 +89,32 @@ mask <- completions$annotations[[1]] %>%
   get_labeled_points() %>%
   create_labeled_masks(imdim = dim(im)) 
 
-# Censor the image using the masks
-labels <- map(mask$mask, function(x) {
-  xx <- im
-  xx[x] <- 1
-  return(xx)
-}) %>% as.imlist()
-
-# Add labels to the image pieces
-names(labels) <- mask$label
+# get image pieces corresponding to the masks
+labels <- mask_image(mask, im)
 
 # Plot
 plot(labels)
+
+
+# To convert to useful data
+# Define unlabeled = junk = 0
+#        shoe-contact = useful = 1
+#        shoe-non-contact = usefulish = 2
+
+create_nn_data <- function(imdim, mask_df) {
+  # Initialize assuming everything is junk
+  res <- array(0, dim = imdim) %>%
+    as.cimg()
+  
+  # Go through the list of masks 
+  for (i in 1:nrow(mask_df)) {
+    value <- ifelse(mask_df$label[i] == "Shoe Sole (contact)", 1, 2)
+    res[!mask_df$mask[[i]]] <- value
+  }
+  
+  return(res)
+}
+
+nn_res <- create_nn_data(dim(im), mask)
+plot(nn_res)
+range(nn_res)
