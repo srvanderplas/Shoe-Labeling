@@ -1,7 +1,8 @@
 library(jsonlite)
 library(tidyverse)
 library(purrr)
-library(nabor) # bucketfill function
+library(magrittr)
+library(dplyr)
 
 #Get Task list
 tasks <- read_json("inst/tasks.json")
@@ -82,10 +83,11 @@ mask_image <- function(mask, im) {
 }
 
 # Get the image
-im <- load.image(completions$img[[1]])
-
+im <- load.image(completions$img[[2]])
+#Plot original picture to see what we shuold be masking
+plot(im)
 # get all of the labeled masks
-mask <- completions$annotations[[1]] %>%
+mask <- completions$annotations[[2]] %>%
   get_labeled_points() %>%
   create_labeled_masks(imdim = dim(im)) 
 
@@ -100,10 +102,9 @@ plot(labels)
 # Define unlabeled = junk = 0
 #        shoe-contact = useful = 1
 #        shoe-non-contact = usefulish = 2
-
 create_nn_data <- function(imdim, mask_df) {
   # Initialize assuming everything is junk
-  res <- array(0, dim = imdim) %>%
+  res <- array(0, dim = imdim) %>% 
     as.cimg()
   
   # Go through the list of masks 
@@ -115,6 +116,47 @@ create_nn_data <- function(imdim, mask_df) {
   return(res)
 }
 
+
 nn_res <- create_nn_data(dim(im), mask)
 plot(nn_res)
-range(nn_res)
+range(nn_res) 
+#Gives our bbox, will this suffice? 
+library(raster)
+im2 <- nn_res
+px <- im2 > .01
+bbox <- crop.bbox(im2,px)
+plot(bbox)
+
+##Could make a function giving us the minbbox, not sure how to do this tbh
+# Create_bounding_box <- function() {
+#   #convert image to an matrix where we can get the bbox
+#   bb <- nn_res %>% as.matrix(nn_res)
+# }
+
+
+# coordinates given by a suitable data frame
+
+# library(shotGroups)
+# points <- points %>%
+#   # convert to relative coordinates [0,1] scale
+#   mutate(xpct = x, ypct = y,
+#          x = x / 100,
+#          y = y / 100)
+# xy <- cbind(points$y, points$x) %>% as.matrix(xy)
+# bb <- getMinBBox(nn_res)               # minimum bounding box
+# 
+# # plot points and minimum bounding box
+# plot(point.y ~ point.x, data=mask, asp=1,
+#      xlim=range(bb$points[ , 1]), ylim=range(bb$points[ , 2]), pch=16)
+# drawBox2(bb, fg='blue', colCtr='blue', pch=4, cex=2)
+# 
+# bb$FoM                                   # figure of merit
+# bb$angle                                 # box orientation
+# 
+# # coordinates given by a matrix
+# ## Not run: 
+# xy <- matrix(round(rnorm(16, 100, 15)), ncol=2)
+# getMinBBox(xy)
+# 
+# ## End(Not run)
+# 
