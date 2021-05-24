@@ -106,7 +106,6 @@ create_nn_data <- function(imdim, mask_df) {
   # Initialize assuming everything is junk
   res <- array(0, dim = imdim) %>% 
     as.cimg()
-  
   # Go through the list of masks 
   for (i in 1:nrow(mask_df)) {
     value <- ifelse(mask_df$label[i] == "Shoe Sole (contact)", 1, 2)
@@ -151,13 +150,6 @@ autocrop(padded) %>% plot()
 padded2 <- bucketfill(padded,1,1,col=c(0,0,0),sigma=.1)
 plot(padded2)
 autocrop(padded2) %>% plot()
-
-
-
-
-
-
-
 
 
 #Other examples

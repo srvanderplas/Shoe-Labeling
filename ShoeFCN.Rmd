@@ -135,22 +135,33 @@ px <- im > .0001
 bbox <- crop.bbox(im2,px)
 plot(bbox)
 padded_bbox <- pad(bbox, 100, "xy") 
-rotate <- imrotate((bbox), 30
+rotate <- imrotate((bbox), 30)
 autocrop(rotate)
 plot(rotate)
 
-completions %>% completions mutate(mask)
 
 library(keras)
 library(tfdatasets)
 library(tidyverse)
 library(rsample)
 library(reticulate)
-
+library(magick)
 
 shoe_images <- tibble(
   img = purrr::map_chr(purrr::map(results, "data"), "image"),
-  mask = 
+  mask = map(mask$mask, function(x) {
+    xx <- im
+    xx[x] <- 1
+    return(xx)
+  }) %>% as.imlist()
+) %>% 
+  sample_n(2) %>% 
+  map(. %>% magick::image_read() %>% magick::image_resize("128x128"))
+
+out <- magick::image_append(c(
+  magick::image_append(shoe_images$img, stack = TRUE), 
+  magick::image_append(shoes_images$mask, stack = TRUE)
+  )
 )
   
 
