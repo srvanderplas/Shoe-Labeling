@@ -83,11 +83,11 @@ mask_image <- function(mask, im) {
 }
 
 # Get the image
-im <- load.image(completions$img[[2]])
+im <- load.image(completions$img[[1]])
 #Plot original picture to see what we shuold be masking
 plot(im)
 # get all of the labeled masks
-mask <- completions$annotations[[2]] %>%
+mask <- completions$annotations[[1]] %>%
   get_labeled_points() %>%
   create_labeled_masks(imdim = dim(im)) 
 
@@ -120,12 +120,70 @@ create_nn_data <- function(imdim, mask_df) {
 nn_res <- create_nn_data(dim(im), mask)
 plot(nn_res)
 range(nn_res) 
-#Gives our bbox, will this suffice? 
+#My shot at the BBox plus padding/rotation/crop
 library(raster)
+library(shotGroups)
+plot(bb)
 im2 <- nn_res
-px <- im2 > .01
+px <- im > .0001
 bbox <- crop.bbox(im2,px)
 plot(bbox)
+padded_bbox <- pad(bbox, 100, "xy") %>% plot()
+rotate <- imrotate((bbox), 30) %>% plot()
+autocrop(rotate) %>% plot()
+#This is great and all but we need to be able to get the bbox for just the shoes features that make contact
+#Using getMinBBox cuz mine I don't think will work
+xy <- mask_df
+bb <- getMinBBox(xy)
+
+#This is the data augmentation part. (i.e. rotate and crop out the image from the bbox)
+#Add pointless padding
+padded <- pad(boats,30,"xy")
+plot(padded)
+#Remove padding
+autocrop(padded) %>% plot()
+#You can specify the colour if need be
+autocrop(padded,"black") %>% plot
+#autocrop has a zero-tolerance policy: if a pixel value is slightly different from the one you gave
+#the pixel won't get cropped. A fix is to do a bucket fill first
+padded <- isoblur(padded,10)
+autocrop(padded) %>% plot()
+padded2 <- bucketfill(padded,1,1,col=c(0,0,0),sigma=.1)
+plot(padded2)
+autocrop(padded2) %>% plot()
+
+
+
+
+
+
+
+
+
+#Other examples
+library(magick)
+og_img <-image_read(im2)
+plot(og_img)
+image_trim(og_img)
+frink <- image_read("https://jeroen.github.io/images/frink.png")
+print(frink)
+image_border(image_background(frink, "hotpink"), "#000080", "20x10")
+image_trim(frink)
+og_img <- image_read(im) %>% plot()
+image_trim(og_img) %>% plot()
+image_trim(im)
+trim(bbox, padding=0)
+extent(bbox)
+imappend(list(im, bbox), "x") %>% plot
+#Now let's pull part of the image that we want. Essentially a small box that
+#contains the features of the shoe
+imappend(list(boats,boats),"x") %>% plot
+imappend(list(boats,boats),"y") %>% plot
+purrr::map(1:3, ~imnoise(100,100)) %>% imappend("c") %>% plot
+boats.gs <- grayscale(boats)
+purrr::map(seq(1,5,l=3),function(v) isoblur(boats.gs,v)) %>% imappend("c") %>% plot
+#imappend also works on pixsets
+imsplit(boats > .5,"c") %>% imappend("x") %>% plot
 
 ##Could make a function giving us the minbbox, not sure how to do this tbh
 # Create_bounding_box <- function() {
