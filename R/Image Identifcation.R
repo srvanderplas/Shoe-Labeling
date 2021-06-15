@@ -83,7 +83,7 @@ mask_image <- function(mask, im) {
 }
 
 # Get the image
-im <- load.image(completions$img[[1]])
+im <- load.image(completions$img[[6]])
 #Plot original picture to see what we shuold be masking
 plot(im)
 # get all of the labeled masks
@@ -119,12 +119,45 @@ create_nn_data <- function(imdim, mask_df) {
 nn_res <- create_nn_data(dim(im), mask)
 plot(nn_res)
 range(nn_res) 
+
+BBOX_df <- function(df){
+  RNN_df <- tibble(
+    meta_id = purrr::map_int(df, "id"),
+    image_https = purrr::map_chr(purrr::map(df, "data"), "image"),
+    data = purrr::map(df, "completions")
+  ) %>%
+    mutate(poly_data = purrr::map(data, ~map(.[[1]]$result, "value"))) %>%
+    unnest(poly_data) %>%
+    mutate(polygon_points = purrr::map(poly_data, ~.$points %>% 
+                                         map_dfr(~rbind(.) %>% 
+                                                   set_names(c("x", "y")))),
+           polygon_labels = purrr::map(poly_data, "polygonlabels")) %>%
+    mutate(x = map(polygon_points, "x"),
+           y = map(polygon_points, "y"),
+           x_min = map_dbl(x,min),
+           x_max = map_dbl(x, max),
+           y_min = map_dbl(y,min),
+           y_max = map_dbl(y, max)) %>% 
+    select(-data, -poly_data)
+  return(RNN_df)
+}
+
+head(finally, 10)
+
+
+
+
+
+
+
+
+
+
 #My shot at the BBox plus padding/rotation/crop
 library(raster)
 library(shotGroups)
-plot(bb)
 im2 <- nn_res
-px <- im > .0001
+px <- im > .01
 bbox <- crop.bbox(im2,px)
 plot(bbox)
 padded_bbox <- pad(bbox, 100, "xy") %>% plot()
