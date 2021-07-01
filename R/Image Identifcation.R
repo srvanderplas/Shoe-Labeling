@@ -83,7 +83,7 @@ mask_image <- function(mask, im) {
 }
 
 # Get the image
-im <- load.image(completions$img[[6]])
+im <- load.image(completions$img[[1]])
 #Plot original picture to see what we shuold be masking
 plot(im)
 # get all of the labeled masks
@@ -143,6 +143,7 @@ BBOX_df <- function(df){
 }
 
 head(finally, 10)
+plot(polygon_labels$finally)
 
 
 
