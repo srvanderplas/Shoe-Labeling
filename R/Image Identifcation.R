@@ -143,7 +143,9 @@ BBOX_df <- function(df){
 }
 
 head(finally, 10)
-plot(polygon_labels$finally)
+boundingbox <- finally$polygon_points
+head(boundingbox)
+plot(finally[1])
 
 
 
