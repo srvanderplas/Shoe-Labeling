@@ -156,93 +156,93 @@ plot(finally[1])
 
 
 
-#My shot at the BBox plus padding/rotation/crop
-library(raster)
-library(shotGroups)
-im2 <- nn_res
-px <- im > .01
-bbox <- crop.bbox(im2,px)
-plot(bbox)
-padded_bbox <- pad(bbox, 100, "xy") %>% plot()
-rotate <- imrotate((bbox), 30) %>% plot()
-autocrop(rotate) %>% plot()
-#This is great and all but we need to be able to get the bbox for just the shoes features that make contact
-#Using getMinBBox cuz mine I don't think will work
-xy <- mask_df
-bb <- getMinBBox(xy)
-
-#This is the data augmentation part. (i.e. rotate and crop out the image from the bbox)
-#Add pointless padding
-padded <- pad(boats,30,"xy")
-plot(padded)
-#Remove padding
-autocrop(padded) %>% plot()
-#You can specify the colour if need be
-autocrop(padded,"black") %>% plot
-#autocrop has a zero-tolerance policy: if a pixel value is slightly different from the one you gave
-#the pixel won't get cropped. A fix is to do a bucket fill first
-padded <- isoblur(padded,10)
-autocrop(padded) %>% plot()
-padded2 <- bucketfill(padded,1,1,col=c(0,0,0),sigma=.1)
-plot(padded2)
-autocrop(padded2) %>% plot()
-
-
-#Other examples
-library(magick)
-og_img <-image_read(im2)
-plot(og_img)
-image_trim(og_img)
-frink <- image_read("https://jeroen.github.io/images/frink.png")
-print(frink)
-image_border(image_background(frink, "hotpink"), "#000080", "20x10")
-image_trim(frink)
-og_img <- image_read(im) %>% plot()
-image_trim(og_img) %>% plot()
-image_trim(im)
-trim(bbox, padding=0)
-extent(bbox)
-imappend(list(im, bbox), "x") %>% plot
-#Now let's pull part of the image that we want. Essentially a small box that
-#contains the features of the shoe
-imappend(list(boats,boats),"x") %>% plot
-imappend(list(boats,boats),"y") %>% plot
-purrr::map(1:3, ~imnoise(100,100)) %>% imappend("c") %>% plot
-boats.gs <- grayscale(boats)
-purrr::map(seq(1,5,l=3),function(v) isoblur(boats.gs,v)) %>% imappend("c") %>% plot
-#imappend also works on pixsets
-imsplit(boats > .5,"c") %>% imappend("x") %>% plot
-
-##Could make a function giving us the minbbox, not sure how to do this tbh
-# Create_bounding_box <- function() {
-#   #convert image to an matrix where we can get the bbox
-#   bb <- nn_res %>% as.matrix(nn_res)
-# }
-
-
-# coordinates given by a suitable data frame
-
+# #My shot at the BBox plus padding/rotation/crop
+# library(raster)
 # library(shotGroups)
-# points <- points %>%
-#   # convert to relative coordinates [0,1] scale
-#   mutate(xpct = x, ypct = y,
-#          x = x / 100,
-#          y = y / 100)
-# xy <- cbind(points$y, points$x) %>% as.matrix(xy)
-# bb <- getMinBBox(nn_res)               # minimum bounding box
+# im2 <- nn_res
+# px <- im > .01
+# bbox <- crop.bbox(im2,px)
+# plot(bbox)
+# padded_bbox <- pad(bbox, 100, "xy") %>% plot()
+# rotate <- imrotate((bbox), 30) %>% plot()
+# autocrop(rotate) %>% plot()
+# #This is great and all but we need to be able to get the bbox for just the shoes features that make contact
+# #Using getMinBBox cuz mine I don't think will work
+# xy <- mask_df
+# bb <- getMinBBox(xy)
 # 
-# # plot points and minimum bounding box
-# plot(point.y ~ point.x, data=mask, asp=1,
-#      xlim=range(bb$points[ , 1]), ylim=range(bb$points[ , 2]), pch=16)
-# drawBox2(bb, fg='blue', colCtr='blue', pch=4, cex=2)
+# #This is the data augmentation part. (i.e. rotate and crop out the image from the bbox)
+# #Add pointless padding
+# padded <- pad(boats,30,"xy")
+# plot(padded)
+# #Remove padding
+# autocrop(padded) %>% plot()
+# #You can specify the colour if need be
+# autocrop(padded,"black") %>% plot
+# #autocrop has a zero-tolerance policy: if a pixel value is slightly different from the one you gave
+# #the pixel won't get cropped. A fix is to do a bucket fill first
+# padded <- isoblur(padded,10)
+# autocrop(padded) %>% plot()
+# padded2 <- bucketfill(padded,1,1,col=c(0,0,0),sigma=.1)
+# plot(padded2)
+# autocrop(padded2) %>% plot()
 # 
-# bb$FoM                                   # figure of merit
-# bb$angle                                 # box orientation
 # 
-# # coordinates given by a matrix
-# ## Not run: 
-# xy <- matrix(round(rnorm(16, 100, 15)), ncol=2)
-# getMinBBox(xy)
+# #Other examples
+# library(magick)
+# og_img <-image_read(im2)
+# plot(og_img)
+# image_trim(og_img)
+# frink <- image_read("https://jeroen.github.io/images/frink.png")
+# print(frink)
+# image_border(image_background(frink, "hotpink"), "#000080", "20x10")
+# image_trim(frink)
+# og_img <- image_read(im) %>% plot()
+# image_trim(og_img) %>% plot()
+# image_trim(im)
+# trim(bbox, padding=0)
+# extent(bbox)
+# imappend(list(im, bbox), "x") %>% plot
+# #Now let's pull part of the image that we want. Essentially a small box that
+# #contains the features of the shoe
+# imappend(list(boats,boats),"x") %>% plot
+# imappend(list(boats,boats),"y") %>% plot
+# purrr::map(1:3, ~imnoise(100,100)) %>% imappend("c") %>% plot
+# boats.gs <- grayscale(boats)
+# purrr::map(seq(1,5,l=3),function(v) isoblur(boats.gs,v)) %>% imappend("c") %>% plot
+# #imappend also works on pixsets
+# imsplit(boats > .5,"c") %>% imappend("x") %>% plot
 # 
-# ## End(Not run)
+# ##Could make a function giving us the minbbox, not sure how to do this tbh
+# # Create_bounding_box <- function() {
+# #   #convert image to an matrix where we can get the bbox
+# #   bb <- nn_res %>% as.matrix(nn_res)
+# # }
 # 
+# 
+# # coordinates given by a suitable data frame
+# 
+# # library(shotGroups)
+# # points <- points %>%
+# #   # convert to relative coordinates [0,1] scale
+# #   mutate(xpct = x, ypct = y,
+# #          x = x / 100,
+# #          y = y / 100)
+# # xy <- cbind(points$y, points$x) %>% as.matrix(xy)
+# # bb <- getMinBBox(nn_res)               # minimum bounding box
+# # 
+# # # plot points and minimum bounding box
+# # plot(point.y ~ point.x, data=mask, asp=1,
+# #      xlim=range(bb$points[ , 1]), ylim=range(bb$points[ , 2]), pch=16)
+# # drawBox2(bb, fg='blue', colCtr='blue', pch=4, cex=2)
+# # 
+# # bb$FoM                                   # figure of merit
+# # bb$angle                                 # box orientation
+# # 
+# # # coordinates given by a matrix
+# # ## Not run: 
+# # xy <- matrix(round(rnorm(16, 100, 15)), ncol=2)
+# # getMinBBox(xy)
+# # 
+# # ## End(Not run)
+# # 
