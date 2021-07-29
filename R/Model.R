@@ -22,7 +22,7 @@ if (!exists("classes")) {
 
 #Freeze somewhere?
 #freeze_weights(conv_base)
-##Vgg-16 Model
+##Vgg-16--Model base
 model <- keras_model_sequential() %>% conv_base %>% 
   #block 1
   layer_conv_2d(filters = 64, kernel_size = c(3, 3), activation = "relu", padding ="same", input_shape = c(150, 150, 3, 1)) 
@@ -45,16 +45,18 @@ model <- keras_model_sequential() %>% conv_base %>%
   #block 5
   layer_conv_2d(filters = 256, kernel_size = c(3, 3), activation = "relu", padding ="same", input_shape = c(150, 150, 3, 1)) 
   layer_conv_2d(filters = 256, kernel_size = c(3, 3), activation = "relu", padding ="same") %>%
-  layer_conv_2d(filters = 256, kernel_size = c(3, 3), activation = "relu", padding ="same")
-  layer_max_pooling_2d(strides = c(2, 2), pool_size = c(2, 2, 2)) %>%
-  #Model head
+  layer_conv_2d(filters = 256, kernel_size = c(3, 3), activation = "relu", padding ="same") %>%
+  layer_max_pooling_2d(strides = c(2, 2), pool_size = c(2, 2, 2))
+    
+  #Model head function #1
+  model_head <- function()
   layer_flatten() %>%
   layer_dense(units = 512, activation = "relu") %>%
   layer_dropout(rate=.5) %>%
   layer_dense(units = length(classes), activation = "softmax", name = "class_head")
   #softmax works with the bounding boxes in the [0,1] coordinates
-
-  ##Regional proposal network layer--do these need to be in functions?
+  
+  #Regional proposal network layer
   rpn_layer <- function(base_layers, num_anchors) {
   layer_conv_2d(filters = 512, kernel_size = c(3,3, activation = "relu", kernal_initializer ="normal"))
   classification_layer <- layer_conv_2d(filters = num_anchors, kernel_size = c(1,1) ) 
